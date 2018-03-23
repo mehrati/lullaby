@@ -33,15 +33,17 @@ while [[ $# -gt 0 ]]; do
 	    echo "*** example command ***"
 		echo "lullaby -t 'today 11:00' -p password --shutdown"
 		echo "lullaby -t 'tomorrow 1:00:22' -p password "
+		exit 0
 		shift
 		;;
 	-v | --version)
 		echo "lullaby version 0.0.1"
+		exit 0
 		shift
 		;;
 	*)
 		# usage
-		exit 1
+		exit 0
 		shift
 		;;
 	esac

@@ -6,6 +6,7 @@ after run script system is go to sleep util time specified
  ```sh
 $ git clone https://github.com/mehrati/lullaby.git
 # change directory to lullaby project 
+$ chmod 755 ./install.sh
 $ ./install.sh
 ```
  <br>**example**<br>
