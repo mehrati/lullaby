@@ -3,6 +3,7 @@ root_pass=""
 wake_time=""
 distro_name=""
 distro_base=""
+dir_log=$HOME/lullaby/
 shut_down=0
 declare -a deb_base=("debian" "ubuntu" "mint" "elementary" "kali")
 declare -a arch_base=("arch" "antergos" "manjaro")
@@ -30,7 +31,7 @@ while [[ $# -gt 0 ]]; do
 		shift
 		;;
 	-h | --help)
-	    echo "*** example command ***"
+		echo "*** example command ***"
 		echo "lullaby -t 'today 11:00' -p password --shutdown"
 		echo "lullaby -t 'tomorrow 1:00:22' -p password "
 		echo "lullaby -t 'tomorrow 1:00:22' -p password -d distroname"
@@ -85,20 +86,32 @@ if [ $? == 1 ]; then
 			echo "please set option -p 'root password' "
 			exit 1
 		else
-			dt=$(date +%s -d "$wake_time")
-			echo $root_pass | sudo -S rtcwake -m mem -l -t $dt
+			timestamp=$(date +%s -d "$wake_time")
+			echo $root_pass | sudo -S rtcwake -m mem -l -t $timestamp >> $dir_log/data.log
+			date >> $dir_log/data.log
+			echo "** wake up system **" >> $dir_log/data.log
 		fi
 	fi
 fi
 
 if [ $distro_base == "arch" ]; then
 	echo $root_pass | sudo -u root --stdin pacman -Sy
+	date >> $dir_log/data.log
+	echo "** update system **" >> $dir_log/data.log
 	echo "Y" | sudo pacman -Su
+	date >> $dir_log/data.log
+	echo "** upgrade system **" >> $dir_log/data.log
 elif [ $distro_base == "debian" ]; then
 	echo $root_pass | sudo -u root --stdin sudo apt update
+	date >> $dir_log/data.log
+	echo "** update system **" >> $dir_log/data.log
 	sudo apt upgrade -y
+	date >> $dir_log/data.log
+	echo "** upgrade system **" >> $dir_log/data.log
 fi
 
 if [[ shut_down -eq 1 ]]; then
+    date >>$dir_log/data.log
+	echo "** shutdown system **" >> $dir_log/data.log
 	shutdown now
 fi
