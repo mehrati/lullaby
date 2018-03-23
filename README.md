@@ -1,8 +1,11 @@
 ## nightly auto update 
 this simple bash script for auto update linux debian and arch distro
 <br>**note**<br>
-after run script system is go to sleep
+after run script system is go to sleep util time specified
  <br>**example**<br>
  ```sh
-$ ./nau --time "" -p "rootpassword"
+$ ./nau --time "today 16:00" -p "rootpassword" # system power on at 16:00 and auto update 
+$ ./nau --time "tomorrow 10:30" -p "rootpassword" --shutdown # system power on at tomorrow 10:30 after update system shutdown
 ```
+<br>**Contributing**<br>
+    Contributions are welcome! Please feel free to submit a Pull Request.

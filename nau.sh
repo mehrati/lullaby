@@ -1,85 +1,99 @@
 #!/bin/bash
 root_pass=""
-up_time=""
-os_dist=""
-ok_dist=""
+wake_time=""
+distro_name=""
+distro_base=""
+shut_down=0
+declare -a deb_base=("debian" "ubuntu" "mint" "elementary" "kali")
+declare -a arch_base=("arch" "antergos" "manjaro")
 
 while [[ $# -gt 0 ]]; do
 	key="$1"
 	case $key in
 	-t | --time)
-		up_time=$2
-		shift # past argument
-		shift # past argument
+		wake_time=$2
+		shift
+		shift
 		;;
 	-p | --root-password)
 		root_pass=$2
-		shift # past argument
-		shift # past argument
+		shift
+		shift
 		;;
 	-d | --distro-name)
-		os_dist=$2
-		shift # past argument
-		shift # past value
+		distro_name=$2
+		shift
+		shift
+		;;
+	-s | --shutdown)
+		shut_down=1
+		shift
 		;;
 	-h | --help)
 		# help
-		shift # past argument
+		shift
 		;;
 	-v | --version)
-		echo -e "[+] version 0.0.1 "
-		shift # past argument
+		echo "version 0.0.1 "
+		shift
 		;;
 	*)
 		# usage
 		exit 1
-		shift # past argument
+		shift
 		;;
 	esac
 done
-echo $os_dist
-declare -a deb_base=("debian" "ubuntu" "mint" "elemntry")
-declare -a arch_base=("arch" "antergos" "manjaro")
-if [ -z "$os_dist" ]; then
+
+if [ -z "$distro_name" ]; then
 	if type lsb_release >/dev/null 2>&1; then
-		os_dist=$(lsb_release -si | tr '[:upper:]' '[:lower:]')
+		distro_name=$(lsb_release -si | tr '[:upper:]' '[:lower:]')
 	else
-		echo "please set os distribution name"
+		echo "please set option -d distribution name"
 		exit 1
 	fi
 fi
-function check_dist() {
+function check_distro() {
 	for i in "${deb_base[@]}"; do
-		if [ $os_dist == $i ]; then
-			ok_dist="debian"
+		if [ $distro_name == $i ]; then
+			distro_base="debian"
 			return 1
 		fi
 	done
 	for i in "${arch_base[@]}"; do
-		if [ $os_dist == $i ]; then
-			ok_dist="arch"
+		if [ $distro_name == $i ]; then
+			distro_base="arch"
 			return 1
 		fi
 	done
+	echo "sorry your os/distribution not supported"
 	return 0
 }
 
-check_dist
+check_distro
 if [ $? == 1 ]; then
-	if [ -z "$up_time" ]; then
-		echo "time arg empty"
+	if [ -z "$wake_time" ]; then
+		echo "please set option -t 'time wake up' "
 		exit 1
 	else
-		echo $root_pass | sudo -S rtcwake -m mem -l -t $up_time
+		if [ -z "$root_pass" ]; then
+			echo "please set option -p 'root password' "
+			exit 1
+		else
+			dt=$(date +%s -d "$wake_time")
+			echo $root_pass | sudo -S rtcwake -m mem -l -t $dt
+		fi
 	fi
 fi
 
-if [ $ok_dist == "arch" ]; then
+if [ $distro_base == "arch" ]; then
 	echo $root_pass | sudo -u root --stdin pacman -Sy
-	echo "Y" | sudo pacman -Suy
-	echo "arch"
-elif [ $ok_dist == "debian" ]; then
+	echo "Y" | sudo pacman -Su
+elif [ $distro_base == "debian" ]; then
 	echo $root_pass | sudo -u root --stdin sudo apt update
 	sudo apt upgrade -y
-	echo "deb"
+fi
+
+if [[ shut_down -eq 1 ]]; then
+	shutdown now
 fi
