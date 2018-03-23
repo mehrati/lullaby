@@ -30,11 +30,13 @@ while [[ $# -gt 0 ]]; do
 		shift
 		;;
 	-h | --help)
-		# help
+	    echo "*** example command ***"
+		echo "lullaby -t 'today 11:00' -p password --shutdown"
+		echo "lullaby -t 'tomorrow 1:00:22' -p password "
 		shift
 		;;
 	-v | --version)
-		echo "version 0.0.1 "
+		echo "lullaby version 0.0.1"
 		shift
 		;;
 	*)
