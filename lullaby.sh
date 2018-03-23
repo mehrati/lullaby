@@ -33,6 +33,7 @@ while [[ $# -gt 0 ]]; do
 	    echo "*** example command ***"
 		echo "lullaby -t 'today 11:00' -p password --shutdown"
 		echo "lullaby -t 'tomorrow 1:00:22' -p password "
+		echo "lullaby -t 'tomorrow 1:00:22' -p password -d distroname"
 		exit 0
 		shift
 		;;
