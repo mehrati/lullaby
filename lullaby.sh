@@ -87,31 +87,25 @@ if [ $? == 1 ]; then
 			exit 1
 		else
 			timestamp=$(date +%s -d "$wake_time")
-			echo $root_pass | sudo -S rtcwake -m mem -l -t $timestamp >> $dir_log/data.log
-			date >> $dir_log/data.log
-			echo "** wake up system **" >> $dir_log/data.log
+			echo $root_pass | sudo -S rtcwake -m mem -l -t $timestamp | tee -a $dir_log/data.log
+			echo "####*** Wakeup System At $(date) ***####" >> $dir_log/data.log
 		fi
 	fi
 fi
 
 if [ $distro_base == "arch" ]; then
-	echo $root_pass | sudo -u root --stdin pacman -Sy
-	date >> $dir_log/data.log
-	echo "** update system **" >> $dir_log/data.log
-	echo "Y" | sudo pacman -Su
-	date >> $dir_log/data.log
-	echo "** upgrade system **" >> $dir_log/data.log
+	echo $root_pass | sudo -u root --stdin pacman -Sy | tee -a $dir_log/data.log
+	echo "####*** Update System At $(date) ***####" >> $dir_log/data.log
+	echo "Y" | sudo pacman -Su | tee -a $dir_log/data.log
+	echo "####*** Upgrade System At $(date) ***####" >> $dir_log/data.log
 elif [ $distro_base == "debian" ]; then
-	echo $root_pass | sudo -u root --stdin sudo apt update
-	date >> $dir_log/data.log
-	echo "** update system **" >> $dir_log/data.log
-	sudo apt upgrade -y
-	date >> $dir_log/data.log
-	echo "** upgrade system **" >> $dir_log/data.log
+	echo $root_pass | sudo -u root --stdin sudo apt update | tee -a $dir_log/data.log
+	echo "####*** Update System At $(date) ***####" >> $dir_log/data.log
+	sudo apt upgrade -y | tee -a $dir_log/data.log
+	echo "####*** Upgrade System At $(date) ***####" >> $dir_log/data.log
 fi
 
 if [[ shut_down -eq 1 ]]; then
-    date >>$dir_log/data.log
-	echo "** shutdown system **" >> $dir_log/data.log
+	echo "####*** Shutdown System At $(date) ***####" >> $dir_log/data.log
 	shutdown now
 fi
