@@ -1,12 +1,10 @@
 #!/bin/bash
 
-wake_time=""
-distro_name=""
-distro_base=""
 dir_log=$HOME/lullaby/
 shut_down=0
 declare -a deb_base=("debian" "ubuntu" "mint" "elementary" "kali")
 declare -a arch_base=("arch" "antergos" "manjaro")
+declare -a fedora_base=("redhat" "fedora" "centos") # TODO add Suport
 
 while [[ $# -gt 0 ]]; do
 	key="$1"
@@ -54,25 +52,23 @@ if [ -z "$distro_name" ]; then
 		exit 1
 	fi
 fi
-function check_distro() {
-	for i in "${deb_base[@]}"; do
-		if [ $distro_name == $i ]; then
-			distro_base="debian"
-			return 1
-		fi
-	done
+
+for i in "${deb_base[@]}"; do
+	if [ $distro_name == $i ]; then
+		distro_base="debian"
+		break
+	fi
+done
+if [ -z $distro_base ]; then
 	for i in "${arch_base[@]}"; do
 		if [ $distro_name == $i ]; then
 			distro_base="arch"
-			return 1
+			break
 		fi
 	done
-	echo "sorry your os/distribution not supported"
-	return 0
-}
+fi
 
-check_distro
-if [ $? == 1 ]; then
+if [ ! -z $distro_base ]; then
 	if [ -z "$wake_time" ]; then
 		echo "please set option -t 'time wake up' "
 		exit 1
@@ -95,28 +91,34 @@ if [ $? == 1 ]; then
 			echo "####*** Wakeup System At $(date) ***####" >>$dir_log/data.log
 		fi
 	fi
+else
+	echo "sorry your os/distribution not supported"
+	exit 1
 fi
 
 if ! ping google.com -c 3 1>/dev/null 2>&1; then
-	echo "####*** You disconnect ***####" >>$dir_log/data.log
 	# TODO try auto connect to net
 fi
 
-if [ $distro_base == "arch" ]; then
-	echo $root_pass | sudo -u root --stdin pacman -Sy | tee -a $dir_log/data.log
-	echo "####*** Update System At $(date) ***####" >>$dir_log/data.log
-	echo "Y" | sudo pacman -Su | tee -a $dir_log/data.log
-	echo "####*** Upgrade System At $(date) ***####" >>$dir_log/data.log
-elif [ $distro_base == "debian" ]; then
-	echo $root_pass | sudo -u root --stdin sudo apt update | tee -a $dir_log/data.log
-	echo "####*** Update System At $(date) ***####" >>$dir_log/data.log
-	sudo apt upgrade -y | tee -a $dir_log/data.log
-	echo "####*** Upgrade System At $(date) ***####" >>$dir_log/data.log
+if ping google.com -c 3 1>/dev/null 2>&1; then
+	if [ $distro_base == "arch" ]; then
+		echo $root_pass | sudo -u root --stdin pacman -Sy | tee -a $dir_log/data.log
+		echo "####*** Update System At $(date) ***####" >>$dir_log/data.log
+		echo "Y" | sudo pacman -Su | tee -a $dir_log/data.log
+		echo "####*** Upgrade System At $(date) ***####" >>$dir_log/data.log
+	elif [ $distro_base == "debian" ]; then
+		echo $root_pass | sudo -u root --stdin sudo apt update | tee -a $dir_log/data.log
+		echo "####*** Update System At $(date) ***####" >>$dir_log/data.log
+		sudo apt upgrade -y | tee -a $dir_log/data.log
+		echo "####*** Upgrade System At $(date) ***####" >>$dir_log/data.log
+	fi
+else
+	echo "####*** System disconnected ***####" >>$dir_log/data.log
 fi
 
-echo "system shutdown ..."
-sleep 5
 if [[ shut_down -eq 1 ]]; then
+	echo "system shutdown ..."
+	sleep 10
 	echo "####*** Shutdown System At $(date) ***####" >>$dir_log/data.log
 	shutdown now
 fi
