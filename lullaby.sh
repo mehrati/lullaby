@@ -92,25 +92,31 @@ if [ $? == 1 ]; then
 				exit 1
 			fi
 			clear
-			echo "####*** Wakeup System At $(date) ***####" >> $dir_log/data.log
+			echo "####*** Wakeup System At $(date) ***####" >>$dir_log/data.log
 		fi
 	fi
 fi
 
+if ! ping google.com -c 3 1>/dev/null 2>&1; then
+	echo "####*** You disconnect ***####" >>$dir_log/data.log
+	# TODO try auto connect to net
+fi
+
 if [ $distro_base == "arch" ]; then
 	echo $root_pass | sudo -u root --stdin pacman -Sy | tee -a $dir_log/data.log
-	echo "####*** Update System At $(date) ***####" >> $dir_log/data.log
+	echo "####*** Update System At $(date) ***####" >>$dir_log/data.log
 	echo "Y" | sudo pacman -Su | tee -a $dir_log/data.log
-	echo "####*** Upgrade System At $(date) ***####" >> $dir_log/data.log
+	echo "####*** Upgrade System At $(date) ***####" >>$dir_log/data.log
 elif [ $distro_base == "debian" ]; then
 	echo $root_pass | sudo -u root --stdin sudo apt update | tee -a $dir_log/data.log
-	echo "####*** Update System At $(date) ***####" >> $dir_log/data.log
+	echo "####*** Update System At $(date) ***####" >>$dir_log/data.log
 	sudo apt upgrade -y | tee -a $dir_log/data.log
-	echo "####*** Upgrade System At $(date) ***####" >> $dir_log/data.log
+	echo "####*** Upgrade System At $(date) ***####" >>$dir_log/data.log
 fi
+
 echo "system shutdown ..."
 sleep 5
 if [[ shut_down -eq 1 ]]; then
-	echo "####*** Shutdown System At $(date) ***####" >> $dir_log/data.log
+	echo "####*** Shutdown System At $(date) ***####" >>$dir_log/data.log
 	shutdown now
 fi
