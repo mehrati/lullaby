@@ -1,5 +1,5 @@
 #!/bin/bash
-root_pass=""
+
 wake_time=""
 distro_name=""
 distro_base=""
@@ -16,11 +16,6 @@ while [[ $# -gt 0 ]]; do
 		shift
 		shift
 		;;
-	-p | --root-password)
-		root_pass=$2
-		shift
-		shift
-		;;
 	-d | --distro-name)
 		distro_name=$2
 		shift
@@ -32,9 +27,9 @@ while [[ $# -gt 0 ]]; do
 		;;
 	-h | --help)
 		echo "*** example command ***"
-		echo "lullaby -t 'today 11:00' -p password --shutdown"
-		echo "lullaby -t 'tomorrow 1:00:22' -p password "
-		echo "lullaby -t 'tomorrow 1:00:22' -p password -d distroname"
+		echo "lullaby -t 'today 11:00' --shutdown"
+		echo "lullaby -t 'tomorrow 3:00:22' "
+		echo "lullaby -t 'tomorrow 4:00:22' -d distroname"
 		exit 0
 		shift
 		;;
@@ -82,12 +77,21 @@ if [ $? == 1 ]; then
 		echo "please set option -t 'time wake up' "
 		exit 1
 	else
+		echo -n "Root Password :"
+		read -s root_pass
+		echo ""
 		if [ -z "$root_pass" ]; then
-			echo "please set option -p 'root password' "
+			echo "please enter password "
 			exit 1
 		else
 			timestamp=$(date +%s -d "$wake_time")
 			echo $root_pass | sudo -S rtcwake -m mem -l -t $timestamp | tee -a $dir_log/data.log
+			if [[ $(date +%s -d "today $(date "+%H:%M")") -lt $timestamp ]]; then
+				echo $root_pass | sudo -S rtcwake disable -t $timestamp | tee -a $dir_log/data.log
+				echo "you stop lullaby process"
+				exit 1
+			fi
+			clear
 			echo "####*** Wakeup System At $(date) ***####" >> $dir_log/data.log
 		fi
 	fi
@@ -104,7 +108,8 @@ elif [ $distro_base == "debian" ]; then
 	sudo apt upgrade -y | tee -a $dir_log/data.log
 	echo "####*** Upgrade System At $(date) ***####" >> $dir_log/data.log
 fi
-
+echo "system shutdown ..."
+sleep 5
 if [[ shut_down -eq 1 ]]; then
 	echo "####*** Shutdown System At $(date) ***####" >> $dir_log/data.log
 	shutdown now
