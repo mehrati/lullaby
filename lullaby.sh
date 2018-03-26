@@ -3,7 +3,7 @@
 dir_log=$HOME/lullaby/
 shut_down=0
 declare -a deb_base=("debian" "ubuntu" "mint" "elementary" "kali")
-declare -a arch_base=("arch" "antergos" "manjaro")
+declare -a arch_base=("arch" "antergos" "manjarolinux")
 declare -a fedora_base=("redhat" "fedora" "centos") # TODO add Suport
 
 while [[ $# -gt 0 ]]; do
@@ -96,9 +96,9 @@ else
 	exit 1
 fi
 
-if ! ping google.com -c 3 1>/dev/null 2>&1; then
+# if ! ping google.com -c 3 1>/dev/null 2>&1; then
 	# TODO try auto connect to net
-fi
+# fi
 
 if ping google.com -c 3 1>/dev/null 2>&1; then
 	if [ $distro_base == "arch" ]; then
