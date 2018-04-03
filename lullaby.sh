@@ -103,22 +103,31 @@ fi
 if ping google.com -c 3 1>/dev/null 2>&1; then
 
 	if which pip >/dev/null 2>&1; then
-		pypkgs=$(pip freeze --local | grep -v '^\-e' | cut -d = -f 1)
-		echo $pypkgs | xargs -n1 sudo pip install -U  | tee -a $dir_log/data.log
+		pypkgs=$(echo $root_pass | sudo -u root --stdin pip freeze --local | grep -v '^\-e' | cut -d = -f 1)
+		echo $pypkgs | xargs -n1 sudo pip install -U | tee -a $dir_log/data.log
+		echo "####*** Update Python Package At $(date) ***####" >>$dir_log/data.log
 	fi
 	if which npm >/dev/null 2>&1; then
-		npm update -g  | tee -a $dir_log/data.log
+		echo $root_pass | sudo -u root --stdin npm update -g | tee -a $dir_log/data.log
+		echo "####*** Update Node Package At $(date) ***####" >>$dir_log/data.log
 	fi
 	if which cargo >/dev/null 2>&1; then
-		if which cargo install-update >/dev/null 2>&1; then
-			cargo install-update -a | tee -a $dir_log/data.log
+		if which rustup >/dev/null 2>&1; then
+			rustup update | tee -a $dir_log/data.log
+			echo "####*** Update Rustc At $(date) ***####" >>$dir_log/data.log
+		fi
+		if which cargo install-update >>/dev/null 2>&1; then
+			cargo install-update -a 1>> $dir_log/data.log 2>&1
+			echo "####*** Update Rust Package At $(date) ***####" >>$dir_log/data.log
 		else
-			cargo install cargo-update | tee -a $dir_log/data.log
-			cargo install-update -a | tee -a $dir_log/data.log
+			cargo install cargo-update 1>> $dir_log/data.log 2>&1
+			cargo install-update -a 1>> $dir_log/data.log 2>&1
+			echo "####*** Update Rust Package At $(date) ***####" >>$dir_log/data.log
 		fi
 	fi
 	if which go >/dev/null 2>&1; then
-		go get -v -u all >>$dir_log/data.log
+		go get -v -u all 1>> $dir_log/data.log 2>&1
+		echo "####*** Update Golang Package At $(date) ***####" >>$dir_log/data.log
 	fi
 
 	if [ $distro_base == "arch" ]; then
@@ -128,16 +137,14 @@ if ping google.com -c 3 1>/dev/null 2>&1; then
 		echo "####*** Upgrade System At $(date) ***####" >>$dir_log/data.log
 		if which yaourt >/dev/null 2>&1; then
 			echo $root_pass | yaourt -Sy | tee -a $dir_log/data.log
+			echo "####*** Update AUR At $(date) ***####" >>$dir_log/data.log
 			echo "Y" | yaourt -Su | tee -a $dir_log/data.log
+			echo "####*** Upgrade AUR At $(date) ***####" >>$dir_log/data.log
 		elif which pacaur >/dev/null 2>&1; then
 			echo $root_pass | pacaur -Sy | tee -a $dir_log/data.log
+			echo "####*** Update AUR At $(date) ***####" >>$dir_log/data.log
 			echo "Y" | pacaur -Su | tee -a $dir_log/data.log
-			# elif which yay >/dev/null 2>&1; then
-			# 	yay -S
-			# 	yay -S
-			# elif which trizen >/dev/null 2>&1; then
-			# 	trizen -S -a
-			# 	trizen -S
+			echo "####*** Upgrade AUR At $(date) ***####" >>$dir_log/data.log
 		fi
 	elif [ $distro_base == "debian" ]; then
 		echo $root_pass | sudo -u root --stdin sudo apt update | tee -a $dir_log/data.log
@@ -152,7 +159,7 @@ fi
 if [[ shut_down -eq 1 ]]; then
 	clear
 	declare -a ch=("/" "|" "\\")
-	
+
 	for i in $(seq 10 -1 0); do
 		for c in "${ch[@]}"; do
 			printf "\r[+] $i Second To Shutdown System... $c "
