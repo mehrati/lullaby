@@ -32,7 +32,7 @@ while [[ $# -gt 0 ]]; do
 		shift
 		;;
 	-v | --version)
-		echo "lullaby version 0.0.1"
+		echo "lullaby version 0.0.2 alpha"
 		exit 0
 		shift
 		;;
@@ -104,17 +104,17 @@ if ping google.com -c 3 1>/dev/null 2>&1; then
 
 	if which pip >/dev/null 2>&1; then
 		pypkgs=$(pip freeze --local | grep -v '^\-e' | cut -d = -f 1)
-		echo $pypkgs | xargs -n1 sudo pip install -U >>$dir_log/data.log
+		echo $pypkgs | xargs -n1 sudo pip install -U  | tee -a $dir_log/data.log
 	fi
 	if which npm >/dev/null 2>&1; then
-		npm update -g >>$dir_log/data.log
+		npm update -g  | tee -a $dir_log/data.log
 	fi
 	if which cargo >/dev/null 2>&1; then
 		if which cargo install-update >/dev/null 2>&1; then
-			cargo install-update -a >>$dir_log/data.log
+			cargo install-update -a | tee -a $dir_log/data.log
 		else
-			cargo install cargo-update
-			cargo install-update -a >>$dir_log/data.log
+			cargo install cargo-update | tee -a $dir_log/data.log
+			cargo install-update -a | tee -a $dir_log/data.log
 		fi
 	fi
 	if which go >/dev/null 2>&1; then
@@ -127,11 +127,11 @@ if ping google.com -c 3 1>/dev/null 2>&1; then
 		echo "Y" | sudo pacman -Su | tee -a $dir_log/data.log
 		echo "####*** Upgrade System At $(date) ***####" >>$dir_log/data.log
 		if which yaourt >/dev/null 2>&1; then
-			echo $root_pass | yaourt -Sy
-			echo "Y" | yaourt -Su
+			echo $root_pass | yaourt -Sy | tee -a $dir_log/data.log
+			echo "Y" | yaourt -Su | tee -a $dir_log/data.log
 		elif which pacaur >/dev/null 2>&1; then
-			echo $root_pass | pacaur -Sy
-			echo "Y" | pacaur -Su
+			echo $root_pass | pacaur -Sy | tee -a $dir_log/data.log
+			echo "Y" | pacaur -Su | tee -a $dir_log/data.log
 			# elif which yay >/dev/null 2>&1; then
 			# 	yay -S
 			# 	yay -S
