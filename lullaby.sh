@@ -97,15 +97,48 @@ else
 fi
 
 # if ! ping google.com -c 3 1>/dev/null 2>&1; then
-	# TODO try auto connect to net
+# TODO try auto connect to net
 # fi
 
 if ping google.com -c 3 1>/dev/null 2>&1; then
+
+	if which pip >/dev/null 2>&1; then
+		pypkgs=$(pip freeze --local | grep -v '^\-e' | cut -d = -f 1)
+		echo $pypkgs | xargs -n1 sudo pip install -U >>$dir_log/data.log
+	fi
+	if which npm >/dev/null 2>&1; then
+		npm update -g >>$dir_log/data.log
+	fi
+	if which cargo >/dev/null 2>&1; then
+		if which cargo install-update >/dev/null 2>&1; then
+			cargo install-update -a >>$dir_log/data.log
+		else
+			cargo install cargo-update
+			cargo install-update -a >>$dir_log/data.log
+		fi
+	fi
+	if which go >/dev/null 2>&1; then
+		go get -v -u all >>$dir_log/data.log
+	fi
+
 	if [ $distro_base == "arch" ]; then
 		echo $root_pass | sudo -u root --stdin pacman -Sy | tee -a $dir_log/data.log
 		echo "####*** Update System At $(date) ***####" >>$dir_log/data.log
 		echo "Y" | sudo pacman -Su | tee -a $dir_log/data.log
 		echo "####*** Upgrade System At $(date) ***####" >>$dir_log/data.log
+		if which yaourt >/dev/null 2>&1; then
+			echo $root_pass | yaourt -Sy
+			echo "Y" | yaourt -Su
+		elif which pacaur >/dev/null 2>&1; then
+			echo $root_pass | pacaur -Sy
+			echo "Y" | pacaur -Su
+			# elif which yay >/dev/null 2>&1; then
+			# 	yay -S
+			# 	yay -S
+			# elif which trizen >/dev/null 2>&1; then
+			# 	trizen -S -a
+			# 	trizen -S
+		fi
 	elif [ $distro_base == "debian" ]; then
 		echo $root_pass | sudo -u root --stdin sudo apt update | tee -a $dir_log/data.log
 		echo "####*** Update System At $(date) ***####" >>$dir_log/data.log
@@ -117,8 +150,16 @@ else
 fi
 
 if [[ shut_down -eq 1 ]]; then
-	echo "system shutdown ..."
-	sleep 10
+	clear
+	declare -a ch=("/" "|" "\\")
+	
+	for i in $(seq 10 -1 0); do
+		for c in "${ch[@]}"; do
+			printf "\r[+] $i Second To Shutdown System... $c "
+			sleep 0.25
+		done
+		sleep 0.25
+	done
 	echo "####*** Shutdown System At $(date) ***####" >>$dir_log/data.log
 	shutdown now
 fi
