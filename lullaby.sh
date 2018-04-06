@@ -23,6 +23,10 @@ while [[ $# -gt 0 ]]; do
 		shut_down=1
 		shift
 		;;
+	-u | --url-file)
+		url_file=$2
+		shift
+		;;
 	-h | --help)
 		echo "*** example command ***"
 		echo "lullaby -t 'today 11:00' --shutdown"
@@ -96,9 +100,22 @@ else
 	exit 1
 fi
 
-# if ! ping google.com -c 3 1>/dev/null 2>&1; then
-# TODO try auto connect to net
-# fi
+if ! ping google.com -c 3 1>/dev/null 2>&1; then
+	if type nmcli >/dev/null 2>&1; then
+		nmcli radio wifi on
+		declare -a uuids=($(nmcli -f UUID con show | sed '/UUID/d'))
+		for uid in "${uuids[@]}"; do
+			nmcli con up uuid $uid | tee -a $dir_log/data.log
+			sleep 1
+			if ping google.com -c 3 1>/dev/null 2>&1; then
+				echo "Connect to internet ..." | tee -a $dir_log/data.log
+				break
+			fi
+		done
+	else
+		echo "nmcli not installed " | tee -a $dir_log/data.log
+	fi
+fi
 
 if ping google.com -c 3 1>/dev/null 2>&1; then
 
@@ -116,17 +133,17 @@ if ping google.com -c 3 1>/dev/null 2>&1; then
 			rustup update | tee -a $dir_log/data.log
 			echo "####*** Update Rustc Finish At $(date) ***####" >>$dir_log/data.log
 		fi
-		if which cargo install-update >>/dev/null 2>&1; then
-			cargo install-update -a 1>> $dir_log/data.log 2>&1
+		if which cargo install-update >/dev/null 2>&1; then
+			cargo install-update -a 1>>$dir_log/data.log 2>&1
 			echo "####*** Update Rust Package Finish At $(date) ***####" >>$dir_log/data.log
 		else
-			cargo install cargo-update 1>> $dir_log/data.log 2>&1
-			cargo install-update -a 1>> $dir_log/data.log 2>&1
+			cargo install cargo-update 1>>$dir_log/data.log 2>&1
+			cargo install-update -a 1>>$dir_log/data.log 2>&1
 			echo "####*** Update Rust Package Finish At $(date) ***####" >>$dir_log/data.log
 		fi
 	fi
 	if which go >/dev/null 2>&1; then
-		go get -v -u all 1>> $dir_log/data.log 2>&1
+		go get -v -u all 1>>$dir_log/data.log 2>&1
 		echo "####*** Update Golang Package Finish At $(date) ***####" >>$dir_log/data.log
 	fi
 
@@ -154,6 +171,12 @@ if ping google.com -c 3 1>/dev/null 2>&1; then
 	fi
 else
 	echo "####*** System disconnected ***####" >>$dir_log/data.log
+fi
+
+if [ -f "$url_file" ]; then
+	if type aria2c >/dev/null 2>&1; then
+		aria2c --input-file $url_file
+	fi
 fi
 
 if [[ shut_down -eq 1 ]]; then
