@@ -116,7 +116,7 @@ if ! ping google.com -c 3 1>/dev/null 2>&1; then
 		echo "nmcli not installed " | tee -a $dir_log/data.log
 	fi
 fi
-
+sleep 10
 if ping google.com -c 3 1>/dev/null 2>&1; then
 
 	if which pip >/dev/null 2>&1; then
